@@ -23,8 +23,13 @@ jobs:
         run: flutter pub get
         working-directory: wangwang_phone
 
+      - name: Analyze
+        run: flutter analyze --no-fatal-infos 2>&1 | head -30
+        working-directory: wangwang_phone
+
       - name: Build web
-        run: flutter build web --release
+        run: |
+          flutter build web --release --verbose 2>&1 | tail -100
         working-directory: wangwang_phone
 
       - name: Upload artifact
