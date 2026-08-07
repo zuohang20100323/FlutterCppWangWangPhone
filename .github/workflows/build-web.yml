@@ -1,0 +1,39 @@
+name: Build Web
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            wangwang_phone
+          sparse-checkout-cone-mode: false
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.35.6
+          channel: stable
+
+      - name: Enable web
+        run: flutter config --enable-web
+
+      - name: Get dependencies
+        run: cd wangwang_phone && flutter pub get
+
+      - name: Build web
+        run: cd wangwang_phone && flutter build web --release
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: flutter-web-build
+          path: wangwang_phone/build/web
+          retention-days: 7
