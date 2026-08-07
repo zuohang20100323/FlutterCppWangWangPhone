@@ -1,0 +1,54 @@
+name: Build Web v4 (bundled)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.44.0"
+          channel: stable
+
+      - name: Enable web
+        run: flutter config --enable-web
+
+      - name: Get dependencies
+        working-directory: wangwang_phone
+        run: flutter pub get
+
+      - name: Build web (bundle all assets locally)
+        working-directory: wangwang_phone
+        run: |
+          echo "=== Building with bundled canvaskit ==="
+          flutter build web --release --no-web-resources-cdn --pwa-strategy=offline-first 2>&1 | tail -40
+          echo "exit: $?"
+          echo "=== Output ==="
+          ls -lah build/web/
+          ls -lah build/web/canvaskit/ 2>/dev/null || echo "no canvaskit dir"
+          du -sh build/web/
+
+      - name: Deploy to Netlify
+        if: success()
+        run: |
+          echo "Zipping build/web..."
+          cd wangwang_phone/build/web
+          find . -type f | head -50
+          zip -r /tmp/web.zip . 2>&1 | tail -5
+          echo "Zip size: $(wc -c < /tmp/web.zip)"
+          echo "Upload to Netlify..."
+          HTTP=$(curl -s -o /tmp/netlify_resp.json -w "%{http_code}" \
+            -X POST \
+            -H "Authorization: Bearer nfp_DR6DoXTd9hHArZ7X9QtkUrvz6MiVXgUcb4da" \
+            -H "Content-Type: application/zip" \
+            --data-binary @/tmp/web.zip \
+            "https://api.netlify.com/api/v1/sites/65e15e77-3f45-4a31-a871-374964094cbf/deploys")
+          echo "HTTP: $HTTP"
+          cat /tmp/netlify_resp.json | head -50
+          echo "Site: https://wangwang-phone-web.netlify.app"
