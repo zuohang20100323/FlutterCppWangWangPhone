@@ -31,12 +31,13 @@ jobs:
       - name: Build web
         working-directory: wangwang_phone
         run: |
-          echo "=== Building web ==="
+          set -e
           flutter build web --release --no-web-resources-cdn --base-href "/FlutterCppWangWangPhone/" 2>&1 | tee /tmp/build.log
-          echo "exit code: ${PIPESTATUS[0]}"
-          ls -lah build/web/ 2>/dev/null || echo "NO build/web"
-      - name: Upload build log on failure
-        if: failure()
+          echo "=== build/web contents ==="
+          ls -lah build/web/
+          test -f build/web/main.dart.js && echo "main.dart.js EXISTS ($(wc -c < build/web/main.dart.js) bytes)" || echo "main.dart.js MISSING"
+      - name: Upload build log always
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: build-log
