@@ -1,0 +1,56 @@
+name: Build Web v3
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.44.0
+          channel: stable
+
+      - name: Enable web
+        run: flutter config --enable-web
+
+      - name: Get dependencies
+        run: |
+          echo "=== flutter pub get ==="
+          flutter pub get 2>&1 || { echo "FAILED"; exit 1; }
+        working-directory: wangwang_phone
+
+      - name: Check Flutter version
+        run: |
+          flutter --version
+          flutter doctor -v
+        working-directory: wangwang_phone
+
+      - name: Build web
+        run: |
+          echo "=== flutter build web ==="
+          flutter build web --release 2>&1 | tee /tmp/build.log
+          echo "exit: $?"
+          ls -la build/web/ 2>/dev/null | head -20
+        working-directory: wangwang_phone
+
+      - name: Deploy to Netlify
+        if: success()
+        run: |
+          echo "Zipping..."
+          cd wangwang_phone/build/web
+          zip -r /tmp/web.zip . 2>&1
+          echo "Zip size: $(wc -c < /tmp/web.zip)"
+          echo "Upload to Netlify..."
+          curl -s -X POST \
+            -H "Authorization: Bearer nfp_DR6DoXTd9hHArZ7X9QtkUrvz6MiVXgUcb4da" \
+            -H "Content-Type: application/zip" \
+            --data-binary @/tmp/web.zip \
+            "https://api.netlify.com/api/v1/sites/65e15e77-3f45-4a31-a871-374964094cbf/deploys"
+          echo ""
+          echo "Done!"
