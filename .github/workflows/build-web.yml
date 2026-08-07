@@ -13,16 +13,15 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: 3.35.6
           channel: stable
+          cache: true
+          cache-dependency-path: wangwang_phone/pubspec.lock
 
       - name: Enable web
         run: flutter config --enable-web
 
-      - name: Get dependencies  
-        run: |
-          flutter pub get --no-precompile
-          ls -la wangwang_phone/
+      - name: Get dependencies
+        run: flutter pub get --no-precompile
         working-directory: wangwang_phone
 
       - name: Build web
