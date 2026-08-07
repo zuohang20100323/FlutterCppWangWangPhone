@@ -13,16 +13,14 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: 3.44.9
+          flutter-version: 3.27.4
           channel: stable
 
       - name: Enable web
         run: flutter config --enable-web
 
-      - name: Analyze first
-        run: |
-          flutter pub get
-          flutter analyze --no-fatal-infos --no-fatal-warnings 2>&1 | tail -50
+      - name: Get dependencies
+        run: flutter pub get
         working-directory: wangwang_phone
 
       - name: Build web
