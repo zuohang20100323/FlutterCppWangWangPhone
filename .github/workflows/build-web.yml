@@ -19,12 +19,14 @@ jobs:
       - name: Enable web
         run: flutter config --enable-web
 
-      - name: Get dependencies
-        run: flutter pub get
+      - name: Get dependencies  
+        run: |
+          flutter pub get --no-precompile
+          ls -la wangwang_phone/
         working-directory: wangwang_phone
 
       - name: Build web
-        run: flutter build web --release
+        run: flutter build web --release --pwa-strategy=none
         working-directory: wangwang_phone
 
       - name: Upload artifact
