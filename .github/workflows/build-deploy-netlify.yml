@@ -1,0 +1,40 @@
+name: Build & Deploy Netlify
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.44.0
+          channel: stable
+
+      - name: Enable web
+        run: flutter config --enable-web
+
+      - name: Get dependencies
+        run: flutter pub get
+        working-directory: wangwang_phone
+
+      - name: Build web
+        run: flutter build web --release
+        working-directory: wangwang_phone
+
+      - name: Deploy to Netlify
+        run: |
+          mkdir -p netlify_deploy
+          cp -r wangwang_phone/build/web/. netlify_deploy/
+          zip -r web.zip netlify_deploy/
+          echo "zip size: $(wc -c < web.zip)"
+          curl -X POST \
+            -H "Content-Type: application/zip" \
+            -H "Authorization: Bearer nfp_DR6DoXTd9hHArZ7X9QtkUrvz6MiVXgUcb4da" \
+            --data-binary @web.zip \
+            "https://api.netlify.com/api/v1/sites/65e15e77-3f45-4a31-a871-374964094cbf/deploys"
