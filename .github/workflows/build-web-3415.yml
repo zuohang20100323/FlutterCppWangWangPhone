@@ -1,0 +1,39 @@
+name: Build Web (3415)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.41.5
+          channel: stable
+
+      - name: Enable web
+        run: flutter config --enable-web
+
+      - name: Get dependencies
+        run: flutter pub get
+        working-directory: wangwang_phone
+
+      - name: Analyze
+        run: flutter analyze --no-fatal-infos --no-fatal-warnings 2>&1 | head -20
+        working-directory: wangwang_phone
+
+      - name: Build web
+        run: flutter build web --release 2>&1 | tail -30
+        working-directory: wangwang_phone
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: flutter-web-build-3415
+          path: wangwang_phone/build/web
+          retention-days: 7
