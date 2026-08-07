@@ -60,3 +60,5 @@ jobs:
           path: wangwang_phone/build/ios/wangwang_phone_unsigned.ipa
           if-no-files-found: error
           retention-days: 14
+
+# reindex-trigger
