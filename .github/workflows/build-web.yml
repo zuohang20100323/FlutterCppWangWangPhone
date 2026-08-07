@@ -2,8 +2,6 @@ name: Build Web
 
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
 
 jobs:
   build:
@@ -11,10 +9,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          sparse-checkout: |
-            wangwang_phone
-          sparse-checkout-cone-mode: false
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
@@ -26,10 +20,12 @@ jobs:
         run: flutter config --enable-web
 
       - name: Get dependencies
-        run: cd wangwang_phone && flutter pub get
+        run: flutter pub get
+        working-directory: wangwang_phone
 
       - name: Build web
-        run: cd wangwang_phone && flutter build web --release
+        run: flutter build web --release
+        working-directory: wangwang_phone
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
